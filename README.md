@@ -1,7 +1,7 @@
 # Parser-and-Declaration-Checker-for-PL-0
 parsing is in pl0.y
 
-declaration\n
+declaration
 require the following files
 symtab.h
 symtab.c
