@@ -80,7 +80,9 @@ void scope_check_procDecl(proc_decl_t pd)
     assert(idu != NULL);  // since would bail if not declared
 
     // block
-
+    scope_check_constDecls(pd.block->const_decls);
+    scope_check_varDecls(pd.block->var_decls);
+    scope_check_procDecls(pd.block->proc_decls);
 }
 
 // build the symbol table and check the declarations in vds
@@ -97,18 +99,18 @@ void scope_check_varDecls(var_decls_t vds)
 // reporting duplicate declarations
 void scope_check_varDecl(var_decl_t vd)
 {
-    scope_check_idents(vd.idents, vd.type_tag);
+    scope_check_idents(vd.idents, variable_idk);
 }
 
 // Add declarations for the names in ids
 // to current scope as type vt
 // reporting any duplicate declarations
 void scope_check_idents(idents_t ids,
-			AST_type vt)
+			id_kind variable_idk) //****************** ident kind
 {
     ident_t *idp = ids.idents;
     while (idp != NULL) {
-	scope_check_declare_ident(*idp, vt);
+	scope_check_declare_ident(*idp, variable_idk);
 	idp = idp->next;
     }
 }
@@ -117,7 +119,7 @@ void scope_check_idents(idents_t ids,
 // to current scope as type vt
 // reporting if it's a duplicate declaration
 void scope_check_declare_ident(ident_t id,
-			    AST_type vt)
+			    id_kind variable_idk)
 {
     if (symtab_declared_in_current_scope(id.name)) {
         // only variables in FLOAT
@@ -127,7 +129,7 @@ void scope_check_declare_ident(ident_t id,
     } else {
 	int ofst_cnt = symtab_scope_loc_count();
 	id_attrs *attrs = create_id_attrs(*(id.file_loc),
-					      vt, ofst_cnt);
+					      variable_idk, ofst_cnt);
 	symtab_insert(id.name, attrs);
     }
 }
@@ -141,11 +143,17 @@ void scope_check_stmt(stmt_t stmt)
     case assign_stmt:
 	scope_check_assignStmt(stmt.data.assign_stmt);
 	break;
+    case call_stmt:
+    scope_check_callStmt(stmt.data.call_stmt);
+    break;
     case begin_stmt:
 	scope_check_beginStmt(stmt.data.begin_stmt);
 	break;
     case if_stmt:
 	scope_check_ifStmt(stmt.data.if_stmt);
+	break;
+    case while_stmt:
+	scope_check_whileStmt(stmt.data.while_stmt);
 	break;
     case read_stmt:
 	scope_check_readStmt(stmt.data.read_stmt);
@@ -153,6 +161,9 @@ void scope_check_stmt(stmt_t stmt)
     case write_stmt:
 	scope_check_writeStmt(stmt.data.write_stmt);
 	break;
+    case skip_stmt:
+    scope_check_skipStmt(stmt.data.skip_stmt);
+    break;
     default:
 	bail_with_error("Call to scope_check_stmt with an AST that is not a statement!");
 	break;
@@ -169,6 +180,15 @@ void scope_check_assignStmt(
 					     name);
     assert(idu != NULL);  // since would bail if not declared
     scope_check_expr(*(stmt.expr));
+}
+
+// ********* chack call statement***********//
+void scope_check_callStmt(call_stmt_t stmt)
+{
+    const char *name = stmt.name;
+    id_use *idu = scope_check_ident_declared(*(stmt.file_loc),
+					     name);
+    assert(idu != NULL);  // since would bail if not declared
 }
 
 // check the statement for
@@ -198,8 +218,34 @@ void scope_check_stmts(stmts_t stmts)
 // (if not, then produce an error)
 void scope_check_ifStmt(if_stmt_t stmt)
 {
-//     scope_check_expr(stmt.expr);
-//     scope_check_stmt(*(stmt.body));
+    scope_check_cond(stmt.condition);
+    scope_check_stmt(*(stmt.then_stmt));
+    scope_check_stmt(*(stmt.else_stmt));
+}
+
+//**********scope check condition************//
+void scope_check_cond(condition_t cond)
+{
+    scope_check_odd_cond(cond.data.odd_cond);
+    scope_check_rel_op_cond(cond.data.rel_op_cond);
+}
+
+//**********scope check condition************//
+void scope_check_odd_cond(odd_condition_t odd_cond)
+{
+
+}
+
+//**********scope check condition************//
+void scope_check_rel_op_cond(rel_op_condition_t rel_op_cond)
+{
+
+}
+
+// ********* chack while statement***********//
+void scope_check_whileStmt(while_stmt_t stmt)
+{
+
 }
 
 // check the statement to make sure that
@@ -216,6 +262,12 @@ void scope_check_readStmt(read_stmt_t stmt)
 void scope_check_writeStmt(write_stmt_t stmt)
 {
     scope_check_expr(stmt.expr);
+}
+
+// ********* chack skip statement***********//
+void scope_check_skipStmt(skip_stmt_t stmt)
+{
+
 }
 
 // check the expresion to make sure that

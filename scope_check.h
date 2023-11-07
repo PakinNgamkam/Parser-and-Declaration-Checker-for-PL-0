@@ -5,12 +5,20 @@
 #define _SCOPE_CHECK_H
 #include "ast.h"
 #include "id_use.h"
+#include "id_attrs.h"
 
 extern void scope_check_constDecls(const_decls_t cds);
 extern void scope_check_constDecl(const_decl_t cd);
 extern void scope_check_constDefs(const_defs_t cdefs);
 extern void scope_check_constDef(const_def_t cdef);
 extern void scope_check_procDecls(proc_decls_t pds);
+extern void scope_check_procDecl(proc_decl_t pd);
+extern void scope_check_callStmt(call_stmt_t stmt);
+extern void scope_check_whileStmt(while_stmt_t stmt);
+extern void scope_check_skipStmt(skip_stmt_t stmt);
+extern void scope_check_cond(condition_t cond);
+extern void scope_check_odd_cond(odd_condition_t odd_cond);
+extern void scope_check_rel_op_cond(rel_op_condition_t rel_op_cond);
 // Build the symbol table for the given program AST
 // and check the given program AST for duplicate declarations
 // or uses of identifiers that were not declared
@@ -26,12 +34,12 @@ extern void scope_check_varDecl(var_decl_t vd);
 // Add declarations for the names in ids to the current scope's symbol table,
 // for variables of the type vt,
 // producing errors for any duplicate declarations
-extern void scope_check_idents(idents_t ids, AST_type vt);
+extern void scope_check_idents(idents_t ids, id_kind variable_idk);
 
 // Add a declaration of the name id.name with the type vt
-// to the current scope's symbol table,
+// to the current sScope's symbol table,
 // producing an error if this would be a duplicate declaration
-extern void scope_check_declare_ident(ident_t id, AST_type vt);
+extern void scope_check_declare_ident(ident_t id, id_kind variable_idk);
 
 // check the statement to make sure that
 // all idenfifiers referenced in it have been declared
